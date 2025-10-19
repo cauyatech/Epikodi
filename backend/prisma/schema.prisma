@@ -1,0 +1,81 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int         @id @default(autoincrement())
+  username    String      @unique
+  email       String      @unique
+  password    String
+  role        String      @default("user")
+  createdAt   DateTime    @default(now())
+  playlists   Playlist[]
+  favorites   Favorite[]
+  ownedMedia  Media[]     @relation("UserOwnedMedia")
+
+  @@map("users")
+}
+
+model Media {
+  id            Int             @id @default(autoincrement())
+  title         String
+  type          String
+  year          Int?
+  duration      Int?
+  filePath      String
+  thumbnailUrl  String?
+  description   String?
+  ownerId       Int?
+  owner         User?           @relation("UserOwnedMedia", fields: [ownerId], references: [id], onDelete: SetNull)
+  favorites     Favorite[]
+  playlistItems PlaylistItem[]
+  createdAt     DateTime        @default(now())
+
+  @@index([title])
+  @@map("media")
+}
+
+model Playlist {
+  id        Int            @id @default(autoincrement())
+  name      String
+  ownerId   Int
+  owner     User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  items     PlaylistItem[]
+  createdAt DateTime       @default(now())
+
+  @@unique([ownerId, name])
+  @@map("playlists")
+}
+
+model PlaylistItem {
+  id         Int       @id @default(autoincrement())
+  playlistId Int
+  mediaId    Int
+  playlist   Playlist  @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  media      Media     @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
+  @@unique([playlistId, mediaId])
+  @@map("playlist_items")
+}
+
+model Favorite {
+  id      Int    @id @default(autoincrement())
+  userId  Int
+  mediaId Int
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  media   Media  @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, mediaId])
+  @@map("favorites")
+}
