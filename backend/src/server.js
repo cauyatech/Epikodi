@@ -9,6 +9,9 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import authRoutes from "./routes/userRoutes.js";
+import mediaRoutes from './routes/mediaRoutes.js';
+import playlistRoutes from './routes/playlistRoutes.js';
+import favoriteRoutes from './routes/favoriteRoutes.js';
 
 dotenv.config();
 
@@ -18,6 +21,9 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use('/api/media', mediaRoutes);
+app.use('/api/playlists', playlistRoutes);
+app.use('/api/favorites', favoriteRoutes);
 
 app.get("/", (req, res) => {
   res.send("le backend tourne bien");
